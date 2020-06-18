@@ -5,9 +5,10 @@ from sklearn.neighbors import NearestNeighbors
 from .classifier import Classifier
 
 class ScikitNearestNeighbors(Classifier):
-    def __init__(self, k, **kw):
+    def __init__(self, k=None, **kw):
         super().__init__(**kw)
-        self._model = NearestNeighbors(n_neighbors=k, p=1) #from scikit module
+        self._k = k
+        self._model = NearestNeighbors(p=1) #from scikit module
     
     def train(self, training_images, training_labels):
         self._training_images = training_images
@@ -15,15 +16,19 @@ class ScikitNearestNeighbors(Classifier):
 
         self._model.fit(self._training_images)
 
-    def test(self, test_images, test_labels):
-        self._test_images = test_images
-        self._test_labels = test_labels
-        num_correct = 0
-        distances = self._model.kneighbors(self._test_images, return_distance=False)
+    def test(self, test_images, test_labels, k=None):
+        if k:
+            self._k = k
+        if self._test_images is not test_images or self._test_labels is not test_labels:
+            self._test_images = test_images
+            self._test_labels = test_labels
+            self._distances = self._model.kneighbors(self._test_images, return_distance=False, n_neighbors=self._k)
 
-        for idx in range(distances.shape[0]):
+        num_correct = 0
+
+        for idx in range(self._distances.shape[0]):
             class_counter = Counter()
-            for neighbor in distances[idx]:
+            for neighbor in self._distances[idx]:
                 class_counter[self._training_labels[neighbor]] += 1
             guess = class_counter.most_common(1)[0][0]
 

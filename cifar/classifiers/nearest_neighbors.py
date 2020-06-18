@@ -5,7 +5,7 @@ import numpy as np
 import scipy
 
 class NearestNeighbors(Classifier):
-    def __init__(self, k, **kw):
+    def __init__(self, k=None, **kw):
         super().__init__(**kw)
         self._k = k
 
@@ -13,17 +13,22 @@ class NearestNeighbors(Classifier):
         self._training_images = training_images
         self._training_labels = training_labels
 
-    def test(self, test_images, test_labels):
-        self._test_images = test_images
-        self._test_labels = test_labels
+    def test(self, test_images, test_labels, k=None):
+        if k:
+            self._k = k
+
+        if self._test_images is not test_images or self._test_labels is not test_labels:
+            self._test_images = test_images
+            self._test_labels = test_labels
+            
+            # shape: (num_test_images, num_training_images)
+            self._distances = cdist(self._test_images, self._training_images, metric='cityblock')
+
         num_correct = 0
 
-        # shape: (num_test_images, num_training_images)
-        distances = cdist(self._test_images, self._training_images, metric='cityblock')
-
-        for ridx in range(distances.shape[0]):
+        for ridx in range(self._distances.shape[0]):
             row_distances = [] # (training_img, distance, label) 3-tuples
-            row = distances[ridx]
+            row = self._distances[ridx]
 
             for cidx in range(row.shape[0]):
                 row_distances.append((self._training_images[cidx], row[cidx], self._training_labels[cidx]))

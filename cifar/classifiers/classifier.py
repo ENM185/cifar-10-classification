@@ -2,7 +2,10 @@ from abc import ABC, abstractmethod
 
 class Classifier(ABC):
     def __init__(self):
-        pass
+        self._training_images = None
+        self._training_labels = None
+        self._test_images = None
+        self._test_labels = None
 
     @abstractmethod
     def train(self, training_images, training_labels):
