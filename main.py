@@ -22,12 +22,13 @@ train_data['images'] = np.array(train_data['images']) / float(255)
 test_data['images'] = np.array(test_data['images']) / float(255)
 
 #apply filters and choose how many tests to try
-test_images = fe.normal_image(test_data['images'])[:10]
-test_data = test_data['labels'][:10]
+test_images = fe.normal_image(test_data['images'])[:30]
+test_data = test_data['labels'][:30]
 
 #train and test model
 classifier = NearestNeighbors()
 classifier.train(fe.normal_image(train_data['images']), train_data['labels'])
-classifier.test(test_images, test_data, k=5)
-classifier.test(test_images, test_data, k=15)
-classifier.test(test_images, test_data, k=25)
+results = []
+for k in range(5,25):
+    results.append([k, classifier.test(test_images, test_data, k=k)])
+print(results)

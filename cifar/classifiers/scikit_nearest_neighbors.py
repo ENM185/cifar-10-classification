@@ -16,7 +16,7 @@ class ScikitNearestNeighbors(Classifier):
 
         self._model.fit(self._training_images)
 
-    def test(self, test_images, test_labels, k=None):
+    def test(self, test_images, test_labels, k=None, verbose=False):
         if k:
             self._k = k
         if self._test_images is not test_images or self._test_labels is not test_labels:
@@ -36,5 +36,6 @@ class ScikitNearestNeighbors(Classifier):
                 num_correct += 1
         
         proportion_correct = num_correct / self._test_images.shape[0]
-        print("{}/{}, or {}% of the test data was labeled correctly".format(num_correct, self._test_images.shape[0], proportion_correct * 100))
+        if verbose:
+            print("{}/{}, or {}% of the test data was labeled correctly".format(num_correct, self._test_images.shape[0], proportion_correct * 100))
         return proportion_correct
