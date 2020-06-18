@@ -15,12 +15,14 @@ class NearestNeighbors(Classifier):
     def test(self):
         num_correct = 0
 
-        distances = cdist(self._test_images, self._training_images, metric='minkowski',p=1)
+        # shape: (num_test_images, num_training_images)
+        distances = cdist(self._test_images, self._training_images, metric='cityblock')
 
-        row_distances = [] # (training_img, distance, label) 3-tuples
-        for ridx in range(len(distances)):
+        for ridx in range(distances.shape[0]):
+            row_distances = [] # (training_img, distance, label) 3-tuples
             row = distances[ridx]
-            for cidx in range(len(row)):
+
+            for cidx in range(row.shape[0]):
                 row_distances.append((self._training_images[cidx], row[cidx], self._training_labels[cidx]))
             
             row_distances.sort(key=lambda t: t[1]) #sort by distance

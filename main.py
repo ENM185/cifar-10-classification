@@ -21,8 +21,7 @@ test_data = loader.load_test_data("cifar/data")
 train_data['images'] = np.array(train_data['images'])
 test_data['images'] = np.array(test_data['images'])
 
-
-classifier = NearestNeighbors(15, training_images=fe.grayscale(train_data['images']), training_labels=train_data['labels'], test_images=fe.grayscale(test_data['images'][0:10]), test_labels=test_data['labels'][0:10])
+classifier = NearestNeighbors(15, training_images=fe.normal_image(train_data['images']), training_labels=train_data['labels'], test_images=fe.normal_image(test_data['images'][:30]), test_labels=test_data['labels'][:100])
 
 classifier.train()
 classifier.test()

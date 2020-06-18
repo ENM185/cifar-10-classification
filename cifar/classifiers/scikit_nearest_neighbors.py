@@ -7,7 +7,7 @@ from .classifier import Classifier
 class ScikitNearestNeighbors(Classifier):
     def __init__(self, k, **kw):
         super().__init__(**kw)
-        self._model = NearestNeighbors(n_neighbors=k)
+        self._model = NearestNeighbors(n_neighbors=k, p=1) #from scikit module
     
     def train(self):
         self._model.fit(self._training_images)
@@ -22,7 +22,7 @@ class ScikitNearestNeighbors(Classifier):
                 class_counter[self._training_labels[neighbor]] += 1
             guess = class_counter.most_common(1)[0][0]
 
-            print("{} {}".format(guess, self._test_labels[idx]))
+            #print("{} {}".format(guess, self._test_labels[idx]))
             if guess == self._test_labels[idx]:
                 num_correct += 1
         
