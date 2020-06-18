@@ -18,10 +18,9 @@ def show_image(set, index):
 
 train_data = loader.load_training_data("cifar/data")
 test_data = loader.load_test_data("cifar/data")
-train_data['images'] = np.array(train_data['images'])
-test_data['images'] = np.array(test_data['images'])
+train_data['images'] = np.array(train_data['images']) / float(255)
+test_data['images'] = np.array(test_data['images']) / float(255)
 
-classifier = NearestNeighbors(15, training_images=fe.normal_image(train_data['images']), training_labels=train_data['labels'], test_images=fe.normal_image(test_data['images'][:30]), test_labels=test_data['labels'][:100])
-
-classifier.train()
-classifier.test()
+classifier = ScikitNearestNeighbors(k=15)
+classifier.train(fe.normal_image(train_data['images']), train_data['labels'])
+classifier.test(fe.normal_image(test_data['images'])[:30], test_data['labels'][:30])
