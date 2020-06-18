@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from matplotlib import pyplot as plt
 from PIL import Image
 
@@ -26,9 +27,15 @@ test_images = fe.normal_image(test_data['images'])[:30]
 test_data = test_data['labels'][:30]
 
 #train and test model
-classifier = NearestNeighbors()
+classifier = ScikitNearestNeighbors()
+start = time.process_time()
 classifier.train(fe.normal_image(train_data['images']), train_data['labels'])
+classifier.test(test_images, test_data, k=1)
+end = time.process_time()
+print("Took {} seconds".format(end - start))
+
+#retest for different k's
 results = []
-for k in range(5,25):
+for k in range(1,30):
     results.append([k, classifier.test(test_images, test_data, k=k)])
 print(results)
