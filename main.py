@@ -27,9 +27,9 @@ train_data['images'] = np.array(train_data['images']) / float(255)
 test_data['images'] = np.array(test_data['images']) / float(255)
 
 #apply filters and choose how many tests to try
-train_images = fe.normal_image(train_data['images'])
+train_images = fe.grayscale(train_data['images'])
 train_labels = train_data['labels']
-test_images = fe.normal_image(test_data['images'])
+test_images = fe.grayscale(test_data['images'])
 test_labels = test_data['labels']
 
 #train and test model
