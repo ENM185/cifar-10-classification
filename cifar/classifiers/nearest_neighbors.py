@@ -8,6 +8,8 @@ class NearestNeighbors(Classifier):
     def __init__(self, k=None, **kw):
         super().__init__(**kw)
         self._k = k
+        self._test_images = None
+        self._test_labels = None
 
     def train(self, training_images, training_labels):
         self._training_images = training_images

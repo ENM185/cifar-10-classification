@@ -19,10 +19,10 @@ class ScikitNearestNeighbors(Classifier):
     def test(self, test_images, test_labels, k=None, verbose=False):
         if k:
             self._k = k
-        if self._test_images is not test_images or self._test_labels is not test_labels:
-            self._test_images = test_images
-            self._test_labels = test_labels
-            self._distances = self._model.kneighbors(self._test_images, return_distance=False, n_neighbors=self._k)
+            
+        self._test_images = test_images
+        self._test_labels = test_labels
+        self._distances = self._model.kneighbors(self._test_images, return_distance=False, n_neighbors=self._k)
 
         num_correct = 0
 
