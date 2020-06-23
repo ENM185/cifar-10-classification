@@ -27,12 +27,13 @@ train_data['images'] = np.array(train_data['images']) / float(255)
 test_data['images'] = np.array(test_data['images']) / float(255)
 
 #apply filters and choose how many tests to try
-train_images = fe.grayscale(train_data['images'])
+train_images = fe.hog(train_data['images'])
 train_labels = train_data['labels']
-test_images = fe.grayscale(test_data['images'])
+test_images = fe.hog(test_data['images'])
 test_labels = test_data['labels']
 
 #train and test model
+print("Training and testing model")
 classifier = NearestNeighbors()
 start = time.process_time()
 classifier.train(train_images, train_labels)
