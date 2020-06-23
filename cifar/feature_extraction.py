@@ -42,9 +42,9 @@ def hog(data, hist_width=8, norm_width=16):
     hist_blocks = int(32 // hist_width)
     blocks_per_norm = int(norm_width // hist_width)
     norm_blocks = hist_blocks-blocks_per_norm+1 # how many configurations there are across a row
-    count = 0
+
     for image in data:
-        magnitudes, directions = _gradient(np.pad(image, 1, mode='constant', constant_values=0))
+        magnitudes, directions = _gradient(image)
         histograms = np.zeros((hist_blocks,hist_blocks,9)) #square grid
 
         #create histograms
@@ -63,10 +63,6 @@ def hog(data, hist_width=8, norm_width=16):
                 flat_histograms = np.asarray(flat_histograms)
                 ret.extend(flat_histograms)
 
-        count += 1
-        if count % 100 == 0:
-            print(count)
-
     return np.array(ret).reshape((data.shape[0], -1))
 
 
@@ -75,17 +71,15 @@ def _gradient(image):
     directions = []
     magnitudes = []
     width = image.shape[0]-2
-    dx = np.zeros((width,width,3))
-    dy = np.zeros((width,width,3))
-    for row in range(1, image.shape[0]-1):
-        for col in range (1, image.shape[1]-1):
-            for color in range (1, 4):
-                dx[row-1][col-1][color-1] = _derivative(image[row,col-1:col+2,color])
-                dy[row-1][col-1][color-1] = _derivative(image[row-1:row+2,col,color])
+
+    # directional derivatives can be found just by shifting and subtracting
+    # dx shifts horizontally twice and subtracts from original; dy does the same vertically
+    dx = (np.pad(image, ((0,0),(0,2),(0,0)), mode='constant', constant_values=0)
+         -np.pad(image, ((0,0),(2,0),(0,0)), mode='constant', constant_values=0))[:,1:-1]
+    dy = (np.pad(image, ((0,2),(0,0),(0,0)), mode='constant', constant_values=0)
+         -np.pad(image, ((2,0),(0,0),(0,0)), mode='constant', constant_values=0))[1:-1]
+    
     magnitudes = np.sqrt(dx**2 + dy**2)
     directions = (np.arctan2(dy, dx) * 180 / np.pi) % 180
     indices = np.argmax(magnitudes, axis=2)
     return np.take_along_axis(magnitudes, np.expand_dims(indices, axis=2), axis=2), np.take_along_axis(directions, np.expand_dims(indices, axis=2), axis=2)
-
-def _derivative(pixels):
-    return np.dot(pixels, [-1, 0, 1])
