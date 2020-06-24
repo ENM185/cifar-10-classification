@@ -17,22 +17,21 @@ def mean_value(data):
     arr = np.array([1, 1, 1]) / 3
     return np.dot(data, arr).reshape(-1, 32*32)
 
-def pixel_histogram(data, window_width, bins):
+def pixel_histogram(data, window_width=16, bins=16):
     assert 32 % window_width == 0
     num_windows = 32 // window_width
-    ret = np.array([]) # concatenation of all histograms
+    ret = [] # concatenation of all histograms
     for image in data:
-        histograms = np.array([])
+        histograms = []
         for row in range(num_windows):
             for col in range(num_windows):
                 for color in range(3):
                     hist = np.histogram(image[row*window_width:(row+1)*window_width,
                                             col*window_width:(col+1)*window_width,
                                             color], bins, (0,1))[0]
-                    histograms = np.concatenate((histograms, hist))
-        ret = np.concatenate((ret, histograms))
-    ret = ret.reshape((data.shape[0], -1))
-    return ret
+                    histograms.extend(np.asarray(hist))
+        ret.extend(histograms)
+    return np.array(ret).reshape((data.shape[0], -1))
 
 '''
 Histogram of oriented gradients
