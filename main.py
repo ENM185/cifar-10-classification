@@ -22,22 +22,22 @@ def show_image(set, index):
 #output will be the weight for f1
 def _concat_weights(f1, f2, labels, k=20):
     print("Testing different weights:")
+    val_size = 45000
     results = []
-    for m in range(10):
-        train_data = np.concatenate((m/10*f1[:40000], f2[:40000]), ord='fro')
-        train_labels = labels[:45000]
-        test_data = np.concatenate((m/10*f1[40000:], f2[40000:]), ord='fro')
-        test_labels = labels[45000:]
-
+    for m in range(2,10,2):
+        train_data = np.concatenate((m/10*f1[:val_size], f2[:val_size]), axis=1)
+        train_labels = labels[:val_size]
+        test_data = np.concatenate((m/10*f1[val_size:], f2[val_size:]), axis=1)
+        test_labels = labels[val_size:]
         classifier = NearestNeighbors()
         classifier.train(train_data, train_labels)
         results.append((classifier.test(test_data, test_labels, k=25), (m/10,1)))
 
-    for m in range(11):
-        train_data = np.concatenate((f1[:40000], m/10*f2[:40000]), axis=1)
-        train_labels = labels[:45000]
-        test_data = np.concatenate((f1[40000:], m/10*f2[40000:]), axis=1)
-        test_labels = labels[45000:]
+    for m in range(2,11,2):
+        train_data = np.concatenate((f1[:val_size], m/10*f2[:val_size]), axis=1)
+        train_labels = labels[:val_size]
+        test_data = np.concatenate((f1[val_size:], m/10*f2[val_size:]), axis=1)
+        test_labels = labels[val_size:]
 
         classifier = NearestNeighbors()
         classifier.train(train_data, train_labels)
@@ -49,7 +49,7 @@ def _concat_weights(f1, f2, labels, k=20):
     return max(results)
 
 #features are the arrays of extracted features
-def _concat_many_weights(labels, *features):
+def _concat_many_weights(labels, features):
     accuracy, mult = _concat_weights(features[0], features[1], labels)
     all_mult = mult
     f1 = np.concatenate((mult[0]*features[0], mult[1]*features[1]), axis=1)
