@@ -17,7 +17,7 @@ def mean_value(data):
     arr = np.array([1, 1, 1]) / 3
     return np.dot(data, arr).reshape(-1, 32*32)
 
-def pixel_histogram(data, window_width=16, bins=16):
+def pixel_histogram(data, window_width=8, bins=16):
     assert 32 % window_width == 0
     num_windows = 32 // window_width
     ret = [] # concatenation of all histograms

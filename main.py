@@ -2,6 +2,7 @@ import numpy as np
 import sys
 import time
 from matplotlib import pyplot as plt
+import math
 from PIL import Image
 
 from cifar import feature_extraction as fe
@@ -19,44 +20,63 @@ def show_image(set, index):
     plt.show()
 
 #input feature-extracted TRAINING data
-#output will be the weight for f1
+#output will be the weight for f2
+#therefore, f1 will not be weighted
 def _concat_weights(f1, f2, labels, k=20):
     print("Testing different weights:")
-    val_size = 45000
+    val_size = 47500
     results = []
-    for m in range(2,10,2):
-        train_data = np.concatenate((m/10*f1[:val_size], f2[:val_size]), axis=1)
-        train_labels = labels[:val_size]
-        test_data = np.concatenate((m/10*f1[val_size:], f2[val_size:]), axis=1)
-        test_labels = labels[val_size:]
-        classifier = NearestNeighbors()
-        classifier.train(train_data, train_labels)
-        results.append((classifier.test(test_data, test_labels, k=25), (m/10,1)))
 
-    for m in range(2,11,2):
-        train_data = np.concatenate((f1[:val_size], m/10*f2[:val_size]), axis=1)
-        train_labels = labels[:val_size]
-        test_data = np.concatenate((f1[val_size:], m/10*f2[val_size:]), axis=1)
-        test_labels = labels[val_size:]
+    #start with 1:1 ratio
+    classifier = NearestNeighbors()
+    train_data = np.concatenate((f1[:val_size], f2[:val_size]), axis=1)
+    train_labels = labels[:val_size]
+    test_data = np.concatenate((f1[val_size:], f2[val_size:]), axis=1)
+    test_labels = labels[val_size:]
+    classifier.train(train_data, train_labels)
+    prev_accuracy = classifier.test(test_data, test_labels, k=k)
+    m = 1.0
+    print((prev_accuracy, m))
 
-        classifier = NearestNeighbors()
-        classifier.train(train_data, train_labels)
-        results.append((classifier.test(test_data, test_labels, k=25), (1,m/10)))
+    #try different 1:m ratios
+    lower, upper = None, None
+    for _ in range(10):
+        new_accuracies = [] # values of f(successor)
+        next_m = [.75*m, 1.5*m] #default if either lower/upper don't exist
+        if lower is not None:
+            next_m[0] = (lower + m) / 2
+        if upper is not None:
+            next_m[1] = (upper + m) / 2
+        for x in next_m:
+            train_data = np.concatenate((f1[:val_size], x*f2[:val_size]), axis=1)
+            train_labels = labels[:val_size]
+            test_data = np.concatenate((f1[val_size:], x*f2[val_size:]), axis=1)
+            test_labels = labels[val_size:]
+            classifier.train(train_data, train_labels)
+            new_accuracies.append(classifier.test(test_data, test_labels, k=k))
+        if max(new_accuracies) < prev_accuracy:
+            break
+        elif max(new_accuracies) == new_accuracies[0]:
+            upper = m
+            m = next_m[0]
+            prev_accuracy = new_accuracies[0]
+        else:
+            lower = m
+            m = next_m[1]
+            prev_accuracy = new_accuracies[1]
+        print((prev_accuracy, m))
 
-    for result in results:
-        print(result)
-
-    return max(results)
+    return (prev_accuracy, m) #not necessarily the last one, but usually is
 
 #features are the arrays of extracted features
 def _concat_many_weights(labels, features):
     accuracy, mult = _concat_weights(features[0], features[1], labels)
-    all_mult = mult
-    f1 = np.concatenate((mult[0]*features[0], mult[1]*features[1]), axis=1)
+    all_mult = (1, mult)
+    f1 = np.concatenate((features[0], mult*features[1]), axis=1)
     for i in range(2, len(features)):
         accuracy, mult = _concat_weights(f1, features[i], labels)
-        f1 = np.concatenate((mult[0]*f1, mult[1]*features[i]), axis=1)
-        all_mult += tuple([mult[0] * m for m in all_mult]) + (mult[1],)
+        f1 = np.concatenate((f1, mult*features[i]), axis=1)
+        all_mult += (mult,)
     
     return (accuracy, all_mult)
 
@@ -90,7 +110,7 @@ test_data = loader.load_test_data("cifar/data")
 train_data['images'] = np.array(train_data['images']) / float(255)
 test_data['images'] = np.array(test_data['images']) / float(255)
 
-concat(train_data['images'], train_data['labels'], test_data['images'], test_data['labels'], fe.grayscale, fe.hog)
+concat(train_data['images'], train_data['labels'], test_data['images'], test_data['labels'], fe.pixel_histogram, fe.hog)
 
 '''
 #apply filters and choose how many tests to try
