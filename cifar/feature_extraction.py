@@ -64,7 +64,6 @@ def hog(data, hist_width=8, norm_width=16):
 
     return np.array(ret).reshape((data.shape[0], -1))
 
-
 def _gradient(image):
     #assume image is padded
     directions = []
