@@ -138,4 +138,4 @@ test_data = loader.load_test_data("cifar/data")
 train_data['images'] = np.array(train_data['images']) / float(255)
 test_data['images'] = np.array(test_data['images']) / float(255)
 
-train_and_test(train_data['images'], train_data['labels'], test_data['images'], test_data['labels'], fe.grayscale)
+train_and_test(train_data['images'], train_data['labels'], test_data['images'], test_data['labels'], fe.average)

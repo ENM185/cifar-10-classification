@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import cv2 as cv
 
 '''
 All functions should expect an nx32x32x3 np array
@@ -11,6 +12,10 @@ def normal_image(data):
 
 def grayscale(data):
     arr = np.array([0.2989, 0.5870, 0.1140])
+    return np.dot(data, arr).reshape(-1, 32*32)
+
+def average(data):
+    arr = np.array([1, 1, 1])/float(3)
     return np.dot(data, arr).reshape(-1, 32*32)
 
 def mean_value(data):
@@ -81,3 +86,10 @@ def _gradient(image):
     directions = (np.arctan2(dy, dx) * 180 / np.pi) % 180
     indices = np.argmax(magnitudes, axis=2)
     return np.take_along_axis(magnitudes, np.expand_dims(indices, axis=2), axis=2), np.take_along_axis(directions, np.expand_dims(indices, axis=2), axis=2)
+
+def sift(data):
+    img = cv.imread('/Users/eric/Desktop/327.jpg')
+    sift = cv.xfeatures2d.SIFT_create()
+    img.size
+    print(sift.compute(img, None))
+    exit()
