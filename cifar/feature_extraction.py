@@ -1,6 +1,8 @@
 import numpy as np
 import math
 import cv2 as cv
+import pickle
+from sklearn.cluster import KMeans
 
 '''
 All functions should expect an nx32x32x3 np array
@@ -70,7 +72,6 @@ def hog(data, hist_width=8, norm_width=16):
     return np.array(ret).reshape((data.shape[0], -1))
 
 def _gradient(image):
-    #assume image is padded
     directions = []
     magnitudes = []
     width = image.shape[0]-2
@@ -87,9 +88,83 @@ def _gradient(image):
     indices = np.argmax(magnitudes, axis=2)
     return np.take_along_axis(magnitudes, np.expand_dims(indices, axis=2), axis=2), np.take_along_axis(directions, np.expand_dims(indices, axis=2), axis=2)
 
-def sift(data):
-    img = cv.imread('/Users/eric/Desktop/327.jpg')
-    sift = cv.xfeatures2d.SIFT_create()
-    img.size
-    print(sift.compute(img, None))
-    exit()
+class Sift:
+    def __init__(self, kmeans=None):
+        self._kmeans = kmeans
+
+    #called when train/test isn't specified
+    #if kmeans is already made, default to test
+    def sift(self, data):
+        if self._kmeans is None:
+            return self._calculate_kmeans(data)
+        else:
+            return self._kmeans_exists(data)
+
+    def _calculate_kmeans(self, data):
+        #images = (grayscale(data).reshape((-1,32,32))*255).astype(np.uint8)
+        images = (data * 255).astype(np.uint8)
+        sift = cv.xfeatures2d.SIFT_create()
+        descriptors = []
+
+        # create keypoints on grid (no direction yet)
+        keypoints = []
+        for i in range(4,32,8):
+            for j in range(4,32,8):
+                keypoints.append(cv.KeyPoint(i,j,8))
+        count = 0
+        for img in images:
+            magnitudes, directions = _gradient(img)
+            idx = 0
+            #make directions based on gradient of image
+            for i in range(4,32,8):
+                for j in range(4,32,8):
+                    mags, dirs = magnitudes[i-4:i+4,j-4:j+4].flatten(), directions[i-4:i+4,j-4:j+4].flatten()
+                    cutoff = .8 * np.amax(mags)
+                    mags = [mag if mag >= cutoff else 0 for mag in mags]
+                    keypoints[idx].angle = np.average(dirs, weights=mags) if cutoff != 0 else np.average(dirs)
+                    idx += 1
+
+            #sift descriptor; shape: (# of keypoints,128)
+            _, desc = sift.compute(img, keypoints)
+            descriptors.append(desc)
+            count += 1
+            if count % 1000 == 0:
+                print(count)
+        print("Calculating kmeans")
+        self._kmeans = KMeans(n_clusters=125,n_jobs=8,precompute_distances=True)
+        self._kmeans.fit(np.concatenate(descriptors,axis=0))
+        #don't want to have to repeat this work...
+        pickle.dump(self._kmeans, open('kmeans', 'wb'))
+        ret = []
+        for desc in descriptors:
+            #create histogram for each image, with a bin for each cluster in KMeans
+            ret.append(np.histogram(self._kmeans.predict(desc), range=(0,self._kmeans.n_clusters), bins=self._kmeans.n_clusters)[0])
+        
+        return np.array(ret)
+
+    def _kmeans_exists(self, data):
+        images = (data*255).astype(np.uint8)
+        sift = cv.xfeatures2d.SIFT_create()
+        ret = []
+
+        keypoints = []
+        for i in range(4,32,8):
+            for j in range(4,32,8):
+                keypoints.append(cv.KeyPoint(i,j,8))
+
+        for img in images:
+            magnitudes, directions = _gradient(img)
+            idx = 0
+            for i in range(4,32,8):
+                for j in range(4,32,8):
+                    mags, dirs = magnitudes[i-4:i+4,j-4:j+4].flatten(), directions[i-4:i+4,j-4:j+4].flatten()
+                    cutoff = .8 * np.amax(mags)
+                    mags = [mag if mag >= cutoff else 0 for mag in mags]
+                    keypoints[idx].angle = np.average(dirs, weights=mags) if cutoff != 0 else np.average(dirs)
+                    idx += 1
+            
+            _, desc = sift.compute(img, keypoints)
+
+            ret.append(np.histogram(self._kmeans.predict(desc), range=(0,self._kmeans.n_clusters), bins=self._kmeans.n_clusters)[0])
+
+        return np.array(ret)

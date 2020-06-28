@@ -4,6 +4,7 @@ import time
 from matplotlib import pyplot as plt
 import math
 from PIL import Image
+import pickle
 
 from cifar import feature_extraction as fe
 from cifar import load_data as loader
@@ -138,4 +139,6 @@ test_data = loader.load_test_data("cifar/data")
 train_data['images'] = np.array(train_data['images']) / float(255)
 test_data['images'] = np.array(test_data['images']) / float(255)
 
-train_and_test(train_data['images'], train_data['labels'], test_data['images'], test_data['labels'], fe.average)
+kmeans = None
+#kmeans = pickle.load(open('kmeans','rb'))
+train_and_test(train_data['images'], train_data['labels'], test_data['images'], test_data['labels'], fe.Sift(kmeans).sift)
