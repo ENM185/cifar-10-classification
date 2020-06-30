@@ -140,5 +140,5 @@ train_data['images'] = np.array(train_data['images']) / float(255)
 test_data['images'] = np.array(test_data['images']) / float(255)
 
 kmeans = None
-#kmeans = pickle.load(open('kmeans','rb'))
-train_and_test(train_data['images'], train_data['labels'], test_data['images'], test_data['labels'], fe.Sift(kmeans).sift)
+kmeans = pickle.load(open('kmeans_sift','rb'))
+train_and_test(train_data['images'], train_data['labels'], test_data['images'], test_data['labels'], fe.pixel_histogram, fe.hog, fe.Sift(kmeans).sift)

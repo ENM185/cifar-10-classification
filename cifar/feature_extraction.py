@@ -2,7 +2,7 @@ import numpy as np
 import math
 import cv2 as cv
 import pickle
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, MiniBatchKMeans
 
 '''
 All functions should expect an nx32x32x3 np array
@@ -131,7 +131,7 @@ class Sift:
             if count % 1000 == 0:
                 print(count)
         print("Calculating kmeans")
-        self._kmeans = KMeans(n_clusters=125,n_jobs=8,precompute_distances=True)
+        self._kmeans = KMeans(n_clusters=1000, n_jobs=20, precompute_distances=True)
         self._kmeans.fit(np.concatenate(descriptors,axis=0))
         #don't want to have to repeat this work...
         pickle.dump(self._kmeans, open('kmeans', 'wb'))

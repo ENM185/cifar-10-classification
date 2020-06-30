@@ -1,0 +1,10 @@
+Testing different weights:
+(0.5, 0.468)
+(0.75, 0.5008)
+(0.875, 0.504)
+(0.9375, 0.5092)
+(0.90625, 0.5164)
+Stopping because next highest accuracy is 0.5156
+Final multiplier tuple is (1, 9.666666666666666)
+Accuracy on test data:
+0.5163
